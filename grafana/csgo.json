@@ -1,0 +1,872 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_CSGO_LOGGER",
+      "label": "CSGO_Logger",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "mysql",
+      "pluginName": "MySQL"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "4.5.1"
+    },
+    {
+      "type": "panel",
+      "id": "grafana-piechart-panel",
+      "name": "Pie Chart",
+      "version": "1.1.5"
+    },
+    {
+      "type": "panel",
+      "id": "graph",
+      "name": "Graph",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "mysql",
+      "name": "MySQL",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "singlestat",
+      "name": "Singlestat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "hideControls": false,
+  "id": null,
+  "links": [],
+  "refresh": false,
+  "rows": [
+    {
+      "collapse": false,
+      "height": 242,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_CSGO_LOGGER}",
+          "fill": 1,
+          "id": 5,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "KillsSummed",
+              "yaxis": 2
+            }
+          ],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "",
+              "format": "time_series",
+              "rawSql": "SELECT \n  FLOOR(UNIX_TIMESTAMP(Timestamp)/60)*60 AS time_sec, \n  COUNT(*) as value , 'Kills' as metric \nFROM CS_Game_Events.PlayerKilled \nWHERE Timestamp BETWEEN $__timeFrom() AND $__timeTo() \nGROUP BY time_sec",
+              "refId": "A"
+            },
+            {
+              "alias": "",
+              "format": "time_series",
+              "rawSql": "SELECT \n\to.time_sec as time_sec\n    ,(SELECT SUM(i.Value) FROM KillsPerMinute i WHERE i.time_sec <= o.time_sec) AS value\n    ,'KillsSummed' as metric\nFROM KillsPerMinute o\nWHERE from_unixtime(o.time_sec) BETWEEN $__timeFrom() AND $__timeTo() ",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Kills",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "Kills per minute",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": "Kills Total",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_CSGO_LOGGER}",
+          "fill": 1,
+          "id": 8,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "spendtSummed",
+              "yaxis": 2
+            }
+          ],
+          "spaceLength": 10,
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "",
+              "format": "time_series",
+              "rawSql": "SELECT \n\tFLOOR(UNIX_TIMESTAMP(Timestamp)/60)*60 AS time_sec, \n\tSUM(ItemPrices.Price) as value,\n\t'spendtPerMinute' as metric\nFROM PlayerPurchased\nLEFT JOIN ItemPrices ON ItemPrices.ItemLogName = PlayerPurchased.Item\nWHERE Timestamp BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY time_sec\nORDER BY time_sec DESC",
+              "refId": "A"
+            },
+            {
+              "alias": "",
+              "format": "time_series",
+              "rawSql": "SELECT \n\to.time_sec as time_sec\n    ,(SELECT SUM(i.Value) FROM SpendtPerMinute i WHERE i.time_sec <= o.time_sec) AS value\n    ,'spendtSummed' as metric\nFROM SpendtPerMinute o\nWHERE from_unixtime(o.time_sec) BETWEEN $__timeFrom() AND $__timeTo() ",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Money spent",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "decimals": null,
+              "format": "currencyUSD",
+              "label": "Per minue",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "currencyUSD",
+              "label": "Total",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 318,
+      "panels": [
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": "${DS_CSGO_LOGGER}",
+          "decimals": 1,
+          "format": "none",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "id": 4,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "%",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "tableColumn": "",
+          "targets": [
+            {
+              "alias": "",
+              "format": "time_series",
+              "rawSql": "SELECT 0 as time_sec,\n    'HeadshotProcentage' as metric,\n    (100 / COUNT(*)) * SUM(CASE Headshot WHEN 'Headshot' THEN 1 ELSE 0 END) AS value FROM CS_Game_Events.PlayerKilled WHERE Timestamp BETWEEN $__timeFrom() AND $__timeTo() ",
+              "refId": "A"
+            }
+          ],
+          "thresholds": "",
+          "title": "Headshot kill ratio",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "first"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": "${DS_CSGO_LOGGER}",
+          "decimals": 1,
+          "format": "none",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "id": 2,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "%",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "tableColumn": "",
+          "targets": [
+            {
+              "alias": "",
+              "format": "time_series",
+              "rawSql": "SELECT \n    0 as time_sec,\n    'CT' as metric,\n\t  CT_KILLS,\n    TERRORIST_KILLS,\n    CT_KILLS + TERRORIST_KILLS AS TOTAL_KILLS,\n    (100 / (CT_KILLS + TERRORIST_KILLS)) * CT_KILLS AS value,\n    (100 / (CT_KILLS + TERRORIST_KILLS)) * TERRORIST_KILLS AS TERRORIST_KILLS_PROCENTAGE\nFROM \n(\n\tSELECT \n\t\tSUM(CASE WHEN KillerTeam = 'CT' THEN 1 ELSE 0 END) AS CT_KILLS,\n\t\tSUM(CASE WHEN KillerTeam = 'TERRORIST' THEN 1 ELSE 0 END) AS TERRORIST_KILLS\n\tFROM CS_Game_Events.PlayerKilled\n    WHERE Killer <> 'BOT' AND Victim <> 'BOT' AND Timestamp BETWEEN $__timeFrom() AND $__timeTo() \n    ) data",
+              "refId": "A"
+            }
+          ],
+          "thresholds": "",
+          "title": "CT Kills VS T Kills",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "first"
+        },
+        {
+          "aliasColors": {},
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": "0"
+          },
+          "datasource": "${DS_CSGO_LOGGER}",
+          "fontSize": "100%",
+          "format": "short",
+          "id": 11,
+          "interval": null,
+          "legend": {
+            "percentage": true,
+            "show": true,
+            "sortDesc": false,
+            "values": false
+          },
+          "legendType": "Right side",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "pieType": "donut",
+          "span": 3,
+          "strokeWidth": 1,
+          "targets": [
+            {
+              "alias": "",
+              "format": "time_series",
+              "rawSql": "SELECT \n\tHitgroup as metric,\n    SUM(DamageHealth) + SUM(DamageArmor) AS value,\n    UNIX_TIMESTAMP(NOW()) as time_sec\nFROM CS_Game_Events.PlayerDamaged \nGROUP BY Hitgroup\nORDER BY value DESC",
+              "refId": "A"
+            }
+          ],
+          "title": "Hitbox Damage",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        },
+        {
+          "columns": [],
+          "datasource": "${DS_CSGO_LOGGER}",
+          "fontSize": "100%",
+          "id": 12,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 3,
+          "styles": [
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 0,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "currencyUSD"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "",
+              "format": "table",
+              "rawSql": "SELECT c.Player1Name as `Player`\n      ,SUM(b.Price) AS `Money Spent`\nFROM CS_Game_Events.PlayerPurchased AS a\nJOIN CS_Game_Events.ItemPrices AS b \n  ON a.Item = b.Item\nJOIN NewestPlayerName AS c\n  ON a.UserID = c.Player1ID\nGROUP BY c.Player1Name\nORDER BY SUM(b.Price) DESC\nLIMIT 0,7",
+              "refId": "A"
+            }
+          ],
+          "title": "Big Spender",
+          "transform": "table",
+          "type": "table"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 415,
+      "panels": [
+        {
+          "columns": [],
+          "datasource": "${DS_CSGO_LOGGER}",
+          "fontSize": "100%",
+          "id": 3,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 2,
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 0,
+              "pattern": "Kills",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "",
+              "format": "table",
+              "rawSql": "SELECT \n\tNewestPlayerName.Player1Name AS Name, \n    SUM(DamageHealth) + SUM(DamageArmor) AS Damage \nFROM CS_Game_Events.PlayerDamaged \nINNER JOIN NewestPlayerName ON NewestPlayerName.Player1ID = PlayerDamaged.Player1ID\nWHERE PlayerDamaged.Player1ID != 'BOT'\n  AND PlayerDamaged.Player1Name not like '%Turtle Beach%'\n  AND PlayerDamaged.Player1Name != 'ROG1'\n  AND PlayerDamaged.Player1Name != 'ROG2'\n  AND Timestamp BETWEEN $__timeFrom() AND $__timeTo() \nGROUP BY NewestPlayerName.Player1Name \nORDER BY Damage DESC\nLIMIT 10",
+              "refId": "A"
+            }
+          ],
+          "title": "The top damagers",
+          "transform": "table",
+          "type": "table"
+        },
+        {
+          "columns": [],
+          "datasource": "${DS_CSGO_LOGGER}",
+          "fontSize": "100%",
+          "id": 9,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 2,
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 0,
+              "pattern": "Count",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 0,
+              "pattern": "Kills",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "",
+              "format": "table",
+              "rawSql": "SELECT \n\tNewestPlayerName.Player1Name AS Name, \n    COUNT(*) AS Kills \nFROM CS_Game_Events.PlayerKilled \nINNER JOIN NewestPlayerName ON NewestPlayerName.Player1ID = PlayerKilled.Killer\nWHERE \n  PlayerKilled.Killer != 'BOT' AND\n  PlayerKilled.Victim != 'BOT' AND\n  PlayerKilled.KillerName not like '%Turtle Beach%'\n  AND PlayerKilled.KillerName != 'ROG1'\n  AND PlayerKilled.KillerName != 'ROG2'\n  AND Timestamp BETWEEN $__timeFrom() AND $__timeTo() \nGROUP BY NewestPlayerName.Player1Name \nORDER BY Kills DESC\nLIMIT 10",
+              "refId": "A"
+            }
+          ],
+          "title": "Top killers",
+          "transform": "table",
+          "type": "table"
+        },
+        {
+          "columns": [],
+          "datasource": "${DS_CSGO_LOGGER}",
+          "fontSize": "100%",
+          "id": 1,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 2,
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "alias": "Name",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "pattern": "Player1Name",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 0,
+              "pattern": "Count",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "",
+              "format": "table",
+              "rawSql": "SELECT \n\tPlayer1Name,\n\tCOUNT(*) AS `Count` \nFROM CS_Game_Events.PlayerSays\nINNER JOIN NewestPlayerName ON NewestPlayerName.Player1ID = PlayerID\nWHERE PlayerID <> 'BOT' AND Timestamp BETWEEN $__timeFrom() AND $__timeTo() \nGROUP BY Player1Name\nORDER BY `Count` DESC\nLIMIT 10\n;",
+              "refId": "A"
+            }
+          ],
+          "title": "The most blappering",
+          "transform": "table",
+          "type": "table"
+        },
+        {
+          "columns": [],
+          "datasource": "${DS_CSGO_LOGGER}",
+          "fontSize": "100%",
+          "id": 6,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 2,
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 0,
+              "pattern": "Count",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "",
+              "format": "table",
+              "rawSql": "SELECT\n\tDISTINCT REPLACE(Item,'item_','') AS Item, \n\tCOUNT(*) AS `Count` \nFROM CS_Game_Events.PlayerPurchased \nWHERE UserID <> 'BOT' AND Timestamp BETWEEN $__timeFrom() AND $__timeTo() \nGROUP BY Item \nORDER BY `Count` DESC\nLIMIT 10\n;",
+              "refId": "A"
+            }
+          ],
+          "title": "Most popular items",
+          "transform": "table",
+          "type": "table"
+        },
+        {
+          "columns": [],
+          "datasource": "${DS_CSGO_LOGGER}",
+          "fontSize": "100%",
+          "id": 10,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 2,
+            "desc": true
+          },
+          "span": 4,
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "alias": "",
+              "format": "table",
+              "rawSql": "  SELECT b.Player1Name AS `Player`\n        ,c.Player1Name AS `Nemisis`\n        ,a.Kills\n    FROM CS_Game_Events.NemisisCounter AS a\n    JOIN NewestPlayerName AS b ON a.Killer = b.Player1ID\n    JOIN NewestPlayerName AS c ON a.Nemisis = c.Player1ID\n   WHERE b.Player1Name NOT IN ('ROG1', 'ROG2', 'Turtle Beach 1', 'Turtle Beach 2', 'Turtle Beach 3')\n     AND c.Player1Name NOT IN ('ROG1', 'ROG2', 'Turtle Beach 1', 'Turtle Beach 2', 'Turtle Beach 3')\nORDER BY a.Kills DESC\n   LIMIT 0,10",
+              "refId": "A"
+            }
+          ],
+          "title": "Nemisis Counter",
+          "transform": "table",
+          "type": "table"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    }
+  ],
+  "schemaVersion": 14,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2017-10-14T03:01:51.570Z",
+    "to": "2017-10-14T03:15:13.333Z"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "",
+  "title": "CS:GO",
+  "version": 27
+}
